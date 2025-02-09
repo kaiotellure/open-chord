@@ -1,0 +1,21 @@
+{
+  "name": "vite-preact-browser-extension",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && copy manifest.json dist",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.0.5",
+    "preact": "^10.25.4",
+    "tailwindcss": "^4.0.5"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.1",
+    "typescript": "~5.7.2",
+    "vite": "^6.1.0"
+  }
+}
