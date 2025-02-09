@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Page</title>
+  </head>
+  <body>
+    <video controls muted autoplay src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"></video>
+    <div class="ytp-progress-bar-container"></div>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #000;
+        color: #fff;
+        height: 100vh;
+      }
+
+      video {
+        width: 100%;
+      }
+
+      .ytp-progress-bar-container {
+        width: 100%;
+        height: 20px;
+        position: relative;
+      }
+    </style>
+
+    <script src="dist/content.js"></script>
+  </body>
+</html>

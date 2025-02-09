@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Open Chord",
+  "version": "1.0",
+  "description": "See song chords in-video.",
+  "permissions": [
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "*://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_end"
+    }
+  ]
+}
