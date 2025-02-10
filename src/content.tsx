@@ -1,132 +1,125 @@
-const DO_CACHE = false;
-const STORAGE_PREFIX = "open-chord-";
-
 import { render } from "preact";
-import { waitForSelector } from "./dom-manipulation";
-import { useEffect, useState } from "preact/hooks";
-import { TrackApiResponse, TrackKeypoint } from "./types";
-import { Text } from "./components/Text";
+import { waitForSelector } from "./dom";
+import { useEffect, useRef, useState } from "preact/hooks";
+import { TrackApiResponse } from "./types";
 import Piano from "./components/Piano";
-
-const log = (...messages: any[]) => console.log("[🎹]", ...messages);
-
-function getThisYoutubeVideoID() {
-  try {
-    const url = new URL(
-      "https://www.youtube.com/watch?v=EbSOKsFHwU8" || window.location.href
-    );
-    return url.searchParams.get("v");
-  } catch (err) {}
-}
-
-function fetchTrackForID(id: string): Promise<TrackApiResponse> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 100, {
-      meta: {
-        transcriber: {
-          name: "Kaio Tellure",
-          social: "github.com/kaiotellure",
-        },
-      },
-      keypoints: [{ t: 5, k: [1, 4, 8, 11], n: "Cm9" }],
-    } as TrackApiResponse);
-  });
-  // fetch("https://servercomingsoon.com/tracks/" + id)
-}
-
-async function getTrackForVideo(id: string): Promise<TrackApiResponse> {
-  if (DO_CACHE) {
-    try {
-      log("trying to get and decode locally cached track for this id.");
-
-      const cached = localStorage.getItem(STORAGE_PREFIX + id);
-      if (cached) return JSON.parse(cached);
-
-      log("locally cached track for this id not found.");
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  try {
-    log("trying to fetch and decode remote track for this id.");
-
-    const track = await fetchTrackForID(id);
-    localStorage.setItem(STORAGE_PREFIX + id, JSON.stringify(track));
-
-    return track;
-    //
-  } catch (err) {
-    //
-    throw err;
-  }
-}
+import { fetchTrackForID, getThisYoutubeVideoID, log } from "./tools";
 
 function ChordsContainer() {
+  const [video, setVideo] = useState<HTMLVideoElement>();
   const [track, setTrack] = useState<TrackApiResponse>();
-  const [currentKeypoint, setCurrentKeypoint] = useState<TrackKeypoint>();
+
+  const [currentBeat, setCurrentBeat] = useState(0);
+  const currentSlotRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const videoId = getThisYoutubeVideoID();
-    if (!videoId) return;
+    if (!videoId) return log("could not get video id");
 
-    getTrackForVideo(videoId)
+    fetchTrackForID(videoId)
       .then(async (track) => {
-        //
-        setTrack(track);
         const video = (await waitForSelector("video")) as HTMLVideoElement;
+        if (window.DEV) video.volume = 0.02;
 
-        function onNextFrame() {
-          const pastKeypoints = track.keypoints.filter(
-            (x) => video.currentTime >= x.t
-          );
-          const currentKeypoint = pastKeypoints[pastKeypoints.length - 1];
-
-          if (currentKeypoint) setCurrentKeypoint(currentKeypoint);
-          // in 500ms do this again
-          if (video) setTimeout(requestAnimationFrame, 500, onNextFrame);
-        }
-
-        requestAnimationFrame(onNextFrame);
+        video.addEventListener("loadedmetadata", () => {
+          setTrack(track);
+          setVideo(video);
+        });
       })
-      .catch((err) => {
-        console.error(err);
-        // todo handle error here, display to user
-      });
+      .catch(console.error);
   }, []);
+
+  useEffect(() => {
+    function updateCurrentBeat() {
+      if (!video || !track) return;
+
+      const bps = track.meta.bpm / 60;
+      const currentBeat = Math.floor(video.currentTime / bps);
+
+      log(currentBeat);
+      setCurrentBeat(currentBeat);
+      setTimeout(requestAnimationFrame, 250, updateCurrentBeat);
+    }
+
+    updateCurrentBeat();
+  }, [video, track]);
+
+  useEffect(() => {
+    if (currentSlotRef.current) {
+      currentSlotRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+  }, [currentSlotRef.current]);
+
+  if (!track || !video) return;
+
+  const bps = track.meta.bpm / 60;
+  const slices = Math.ceil(video.duration * bps);
 
   return (
     <div
       style={{
-        position: "absolute",
-        bottom: "100%",
-        marginBottom: ".6em",
-        width: "fit-content",
-        padding: ".2em",
-        background: "rgb(10,10,10,.9)",
-        border: "solid 1px rgb(255,255,255,.2)",
-        borderRadius: "2px",
+        position: "relative",
+        overflowX: "auto",
+        scrollbarWidth: "none", // Firefox
+        msOverflowStyle: "none", // IE & Edge
+        WebkitOverflowScrolling: "touch",
+        WebkitScrollbar: "none",
+        padding: "1.5rem .5rem",
+        background: "rgb(50,50,50)",
+        borderRadius: "6px",
         display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        pointerEvents: "none",
-        gap: 2
+        alignItems: "center",
+        marginBottom: "1.25rem",
+        scrollSnapType: "x mandatory",
+        gap: 12,
       }}
     >
-      {currentKeypoint && (
-        <>
-          <Text size={16}>{currentKeypoint.n}</Text>
-          <Piano pressedKeys={currentKeypoint.k} />
-        </>
-      )}
+      <div
+        style={{
+          position: "fixed",
+          zIndex: 10,
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          background: "linear-gradient(to right, black 10%, rgb(0,0,0,.1), black 90%)",
+        }}
+      ></div>
+
+      {Array.from({ length: slices }, (_, i) => (
+        <div
+          key={i}
+          ref={currentBeat == i ? currentSlotRef : null}
+          style={{
+            scrollSnapAlign: "center",
+            opacity: currentBeat == i ? 1 : 0.6,
+          }}
+        >
+          <p
+            style={{
+              fontSize: 16,
+              marginBottom: ".4rem",
+              fontWeight: "500",
+            }}
+          >
+            {i} {currentBeat}
+          </p>
+          <Piano />
+        </div>
+      ))}
     </div>
   );
 }
 
-waitForSelector("div.ytp-progress-bar-container").then(
-  (progressBarContainer) => {
-    const root = document.createElement("div");
-    progressBarContainer.appendChild(root);
-    render(<ChordsContainer />, root);
-  }
-);
+// div.ytp-progress-bar-container: progress bar container
+// #above-the-fold: title container
+
+waitForSelector("#above-the-fold").then((titleContainer) => {
+  const root = document.createElement("div");
+  titleContainer.insertBefore(root, titleContainer.firstChild);
+  render(<ChordsContainer />, root);
+});

@@ -65,9 +65,9 @@ function Note({
 
 const biggestReducer = (acc: number, curr: number) => Math.max(acc, curr);
 
-export default function Piano({ pressedKeys }: { pressedKeys: number[] }) {
-  const farthestNote = pressedKeys.reduce(biggestReducer, 0);
-  const octavesNeeded = Math.ceil(farthestNote / 12);
+export default function Piano({ pressedKeys }: { pressedKeys?: number[] }) {
+  const farthestNote = pressedKeys?.reduce(biggestReducer, 0);
+  const octavesNeeded = Math.ceil((farthestNote || 12) / 12);
 
   return (
     <div
@@ -86,7 +86,7 @@ export default function Piano({ pressedKeys }: { pressedKeys: number[] }) {
             <Note
               label={label}
               kind={black ? "black" : "white"}
-              pressed={pressedKeys.includes(i + 1)}
+              pressed={pressedKeys && pressedKeys.includes(i + 1)}
             />
           );
         })}
