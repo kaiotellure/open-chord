@@ -60,3 +60,16 @@ export async function getTrackForVideo(id: string): Promise<TrackApiResponse> {
     throw err;
   }
 }
+
+export function isElementInViewport(el: Element) {
+  const rect = el.getBoundingClientRect();
+  return (
+    rect.top < (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.bottom > 0 &&
+    rect.left < (window.innerWidth || document.documentElement.clientWidth) &&
+    rect.right > 0
+  );
+}
+
+
+export {twMerge as cn} from "tailwind-merge";

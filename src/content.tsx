@@ -1,9 +1,17 @@
+import "./styles.css";
+
 import { render } from "preact";
 import { waitForSelector } from "./dom";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { TrackApiResponse } from "./types";
 import Piano from "./components/Piano";
-import { fetchTrackForID, getThisYoutubeVideoID, log } from "./tools";
+import {
+  cn,
+  fetchTrackForID,
+  getThisYoutubeVideoID,
+  isElementInViewport,
+  log,
+} from "./tools";
 
 function ChordsContainer() {
   const [video, setVideo] = useState<HTMLVideoElement>();
@@ -11,6 +19,9 @@ function ChordsContainer() {
 
   const [currentBeat, setCurrentBeat] = useState(0);
   const currentSlotRef = useRef<HTMLDivElement>(null);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isHoveringContainer, setIsHoveringContainer] = useState(false);
 
   useEffect(() => {
     const videoId = getThisYoutubeVideoID();
@@ -33,25 +44,28 @@ function ChordsContainer() {
     function updateCurrentBeat() {
       if (!video || !track) return;
 
-      const bps = track.meta.bpm / 60;
-      const currentBeat = Math.floor(video.currentTime / bps);
+      const beatDuration = 60 / track.meta.bpm; // in seconds, for 111 = 0.54
+      const currentBeat = Math.floor(video.currentTime / beatDuration);
 
-      log(currentBeat);
       setCurrentBeat(currentBeat);
-      setTimeout(requestAnimationFrame, 250, updateCurrentBeat);
+      setTimeout(requestAnimationFrame, beatDuration * 1000, updateCurrentBeat);
     }
 
     updateCurrentBeat();
   }, [video, track]);
 
   useEffect(() => {
-    if (currentSlotRef.current) {
-      currentSlotRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "center",
-      });
-    }
+    if (!currentSlotRef.current || !containerRef.current) return;
+    // don't scroll when user is away from video player. eg: comments
+    if (!isElementInViewport(containerRef.current)) return;
+    // don't scroll when user is hovering container
+    if (isHoveringContainer) return;
+
+    currentSlotRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
   }, [currentSlotRef.current]);
 
   if (!track || !video) return;
@@ -61,53 +75,20 @@ function ChordsContainer() {
 
   return (
     <div
-      style={{
-        position: "relative",
-        overflowX: "auto",
-        scrollbarWidth: "none", // Firefox
-        msOverflowStyle: "none", // IE & Edge
-        WebkitOverflowScrolling: "touch",
-        WebkitScrollbar: "none",
-        padding: "1.5rem .5rem",
-        background: "rgb(50,50,50)",
-        borderRadius: "6px",
-        display: "flex",
-        alignItems: "center",
-        marginBottom: "1.25rem",
-        scrollSnapType: "x mandatory",
-        gap: 12,
-      }}
+      ref={containerRef}
+      onMouseEnter={() => setIsHoveringContainer(true)}
+      onMouseLeave={() => setIsHoveringContainer(false)}
+      className="relative overflow-x-auto scrollbar-none p-4 flex items-center mb-4! snap-mandatory gap-4"
     >
-      <div
-        style={{
-          position: "fixed",
-          zIndex: 10,
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          background: "linear-gradient(to right, black 10%, rgb(0,0,0,.1), black 90%)",
-        }}
-      ></div>
-
       {Array.from({ length: slices }, (_, i) => (
         <div
           key={i}
           ref={currentBeat == i ? currentSlotRef : null}
-          style={{
-            scrollSnapAlign: "center",
-            opacity: currentBeat == i ? 1 : 0.6,
-          }}
+          className={cn("snap-center", currentBeat != i && "opacity-60")}
         >
-          <p
-            style={{
-              fontSize: 16,
-              marginBottom: ".4rem",
-              fontWeight: "500",
-            }}
-          >
+          <span className="text-sm font-medium">
             {i} {currentBeat}
-          </p>
+          </span>
           <Piano />
         </div>
       ))}
@@ -119,7 +100,9 @@ function ChordsContainer() {
 // #above-the-fold: title container
 
 waitForSelector("#above-the-fold").then((titleContainer) => {
-  const root = document.createElement("div");
-  titleContainer.insertBefore(root, titleContainer.firstChild);
-  render(<ChordsContainer />, root);
+  const container = document.createElement("div");
+  // insert container empty div before title
+  titleContainer.insertBefore(container, titleContainer.firstChild);
+  // render to container
+  render(<ChordsContainer />, container);
 });
