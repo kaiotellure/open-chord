@@ -33,26 +33,28 @@ function ChordsContainer() {
         if (window.DEV) video.volume = 0.02;
 
         video.addEventListener("loadedmetadata", () => {
-          setTrack(track);
+          scheduleBeatUpdates(video, track);
           setVideo(video);
+          setTrack(track);
         });
       })
       .catch(console.error);
   }, []);
 
-  useEffect(() => {
-    function updateCurrentBeat() {
-      if (!video || !track) return;
+  function scheduleBeatUpdates(
+    video: HTMLVideoElement,
+    track: TrackApiResponse
+  ) {
+    const beatDuration = 60 / track.meta.bpm; // in seconds, for 111 = 0.54
+    const currentBeat = Math.floor(
+      (video.currentTime - track.meta.offset) / beatDuration
+    );
 
-      const beatDuration = 60 / track.meta.bpm; // in seconds, for 111 = 0.54
-      const currentBeat = Math.floor(video.currentTime / beatDuration);
+    setCurrentBeat(currentBeat);
+    setTimeout(scheduleBeatUpdates, beatDuration * 100, video, track);
+  }
 
-      setCurrentBeat(currentBeat);
-      setTimeout(requestAnimationFrame, beatDuration * 1000, updateCurrentBeat);
-    }
-
-    updateCurrentBeat();
-  }, [video, track]);
+  log("called");
 
   useEffect(() => {
     if (!currentSlotRef.current || !containerRef.current) return;
@@ -70,28 +72,53 @@ function ChordsContainer() {
 
   if (!track || !video) return;
 
-  const bps = track.meta.bpm / 60;
-  const slices = Math.ceil(video.duration * bps);
+  const beatDuration = 60 / track.meta.bpm;
+  const totalBeatCount = Math.ceil(video.duration / beatDuration);
 
   return (
     <div
       ref={containerRef}
       onMouseEnter={() => setIsHoveringContainer(true)}
       onMouseLeave={() => setIsHoveringContainer(false)}
-      className="relative overflow-x-auto scrollbar-none p-4 flex items-center mb-4! snap-mandatory gap-4"
+      className="p-4 mb-4! bg-red-200/10 rounded"
     >
-      {Array.from({ length: slices }, (_, i) => (
-        <div
-          key={i}
-          ref={currentBeat == i ? currentSlotRef : null}
-          className={cn("snap-center", currentBeat != i && "opacity-60")}
-        >
-          <span className="text-sm font-medium">
-            {i} {currentBeat}
+      {window.DEV && (
+        <>
+          <span>
+            Current Beat: {currentBeat} @{(video.currentTime-track.meta.offset).toFixed(2)}s
           </span>
-          <Piano />
-        </div>
-      ))}
+        </>
+      )}
+
+      <div className="overflow-x-auto scrollbar-none flex items-center snap-mandatory gap-4">
+        {Array.from({ length: totalBeatCount }, (_, i) => (
+          <div
+            key={i}
+            ref={currentBeat == i ? currentSlotRef : null}
+            className={cn("snap-center", currentBeat != i && "opacity-60")}
+          >
+            {true ? (
+              <div
+                className={cn(
+                  "size-full font-bold text-lg px-8 py-2 rounded-md",
+                  currentBeat == i
+                    ? "bg-rose-500 text-rose-800"
+                    : "bg-white/10 text-white/20"
+                )}
+              >
+                {(i % 4) + 1}
+              </div>
+            ) : (
+              <>
+                <span className="text-sm font-medium">
+                  {i} {currentBeat}
+                </span>
+                <Piano />
+              </>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

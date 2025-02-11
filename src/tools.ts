@@ -12,16 +12,15 @@ export function getThisYoutubeVideoID() {
 }
 
 export async function fetchTrackForID(id: string): Promise<TrackApiResponse> {
-  if (window.DEV) return {
-    meta: {
-      bpm: 111,
-      length: 1,
-      offset: 9.5
-    },
-    keypoints: [
-      {after: 0, keys: [1,4,8]}
-    ]
-  };
+  if (window.DEV)
+    return {
+      meta: {
+        bpm: 111,
+        length: 1,
+        offset: 9.5,
+      },
+      keypoints: [{ after: 0, keys: [1, 4, 8] }],
+    };
 
   const response = await fetch(
     `https://kaiotellure.github.io/open-chord/${id}.json`
@@ -71,5 +70,4 @@ export function isElementInViewport(el: Element) {
   );
 }
 
-
-export {twMerge as cn} from "tailwind-merge";
+export { twMerge as cn } from "tailwind-merge";

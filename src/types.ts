@@ -1,6 +1,6 @@
 export type TrackKeypoint = {
-  keys: number[];
-  after: number;
+  keys: keyof typeof Chords | number[];
+  beat: number;
 }
 
 type TrackMeta = {
@@ -14,24 +14,28 @@ export type TrackApiResponse = {
   keypoints: TrackKeypoint[];
 };
 
-export const INTERVALS = {
-  C: 1,
-  "C#": 2,
-  Db: 2,
-  D: 3,
-  "D#": 4,
-  Eb: 4,
-  E: 5,
-  F: 6,
-  "F#": 7,
-  Gb: 7,
-  G: 8,
-  "G#": 9,
-  Ab: 9,
-  A: 10,
-  "A#": 11,
-  Bb: 11,
-  B: 12,
+export const Notes = {
+  C: 0,
+  "C#": 1,
+  Db: 1,
+  D: 2,
+  "D#": 3,
+  Eb: 3,
+  E: 4,
+  F: 5,
+  "F#": 6,
+  Gb: 6,
+  G: 7,
+  "G#": 8,
+  Ab: 8,
+  A: 9,
+  "A#": 10,
+  Bb: 10,
+  B: 11,
 } as const;
 
-export type Key = keyof typeof INTERVALS;
+export type Note = keyof typeof Notes;
+
+export const Chords = {
+
+}
