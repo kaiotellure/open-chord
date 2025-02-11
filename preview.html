@@ -20,6 +20,9 @@
         <h1 class="text-lg font-bold">
           Artist - Song ft. Other (Official Music Video)
         </h1>
+        <p class="mt-4 px-4 py-2 bg-white/20 rounded-md">
+          Press (c) to copy current video time in seconds.
+        </p>
       </div>
     </section>
   </body>
@@ -27,6 +30,12 @@
 
 <script type="module">
   window.DEV = true;
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key != "c") return;
+    const video = document.querySelector("video");
+    navigator.clipboard.writeText(video.currentTime.toFixed(2));
+  });
 </script>
 
 <script defer src="dist/content.js"></script>
