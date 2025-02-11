@@ -3,7 +3,7 @@ import "./styles.css";
 import { render } from "preact";
 import { waitForSelector } from "./dom";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { TrackApiResponse } from "./types";
+import { TrackApiResponse, TrackKeypoint } from "./types";
 import Piano from "./components/Piano";
 import {
   cn,
@@ -17,7 +17,7 @@ function ChordsContainer() {
   const [video, setVideo] = useState<HTMLVideoElement>();
   const [track, setTrack] = useState<TrackApiResponse>();
 
-  const [currentBeat, setCurrentBeat] = useState(0);
+  const [currentKeypoint, setCurrentKeypoint] = useState<TrackKeypoint>();
   const currentSlotRef = useRef<HTMLDivElement>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -32,7 +32,7 @@ function ChordsContainer() {
         const video = (await waitForSelector("video")) as HTMLVideoElement;
 
         if (window.DEV) {
-          video.volume = 0.1;
+          video.volume = 0.5;
           video.currentTime = track.meta.offset - 1;
           video.focus();
         }
@@ -50,12 +50,9 @@ function ChordsContainer() {
     video: HTMLVideoElement,
     track: TrackApiResponse
   ) {
-    const beatDuration = 60 / track.meta.bpm; // in seconds, for 111 = 0.54
-    const currentBeat = Math.floor(
-      (video.currentTime - track.meta.offset) / beatDuration
-    );
-
-    setCurrentBeat(currentBeat);
+    const passedKeypoints = track.keypoints.filter(k => video.currentTime > k.beat)
+    const currentKeypoint = passedKeypoints[passedKeypoints.length - 1];
+    setCurrentKeypoint(currentKeypoint);
     // setTimeout(scheduleBeatUpdates, beatDuration * 100, video, track);
     requestAnimationFrame(scheduleBeatUpdates.bind(null, video, track));
   }
@@ -88,29 +85,29 @@ function ChordsContainer() {
       onMouseLeave={() => setIsHoveringContainer(false)}
       className="p-4 mb-4! bg-red-200/10 rounded"
     >
-      {window.DEV && (
+      {/* {window.DEV && (
         <>
           <span>
-            Current Beat: {currentBeat} @
-            {(video.currentTime - track.meta.offset).toFixed(2)}s
+            Current Beat: {0} @
+            {(video.currentTime).toFixed(2)}s
           </span>
         </>
-      )}
+      )} */}
 
       <div className="overflow-x-auto scrollbar-none flex items-center snap-mandatory gap-4">
-        {Array.from({ length: totalBeatCount }, (_, i) => {
-          const keypoint = track.keypoints.find((k) => k.beat == i);
+        {track.keypoints.map((keypoint, i) => {
+          const isCurrent = currentKeypoint == keypoint;
 
           return (
             <div
               key={i}
-              ref={currentBeat == i ? currentSlotRef : null}
-              className={cn("snap-center", currentBeat != i && "opacity-60")}
+              ref={isCurrent ? currentSlotRef : null}
+              className={cn("snap-center", !isCurrent && "duration-700 opacity-60")}
             >
               {keypoint ? (
                 <>
                   <span className="text-sm font-medium">
-                    {keypoint.keys.name}
+                    {keypoint.keys.name} <span className="text-xs leading-none opacity-60">{keypoint.beat}</span>
                   </span>
                   <Piano pressedKeys={keypoint.keys.notes} />
                 </>
@@ -118,7 +115,7 @@ function ChordsContainer() {
                 <div
                   className={cn(
                     "size-full font-bold text-lg px-8 py-2 rounded-md",
-                    currentBeat == i
+                    isCurrent
                       ? "bg-rose-500 text-rose-800"
                       : "bg-white/10 text-white/20"
                   )}
