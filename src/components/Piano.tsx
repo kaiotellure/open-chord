@@ -1,3 +1,5 @@
+
+
 const white_tile = "linear-gradient(to bottom, white, rgb(255,255,255,.8))";
 const pressed_tile = "#f294cc";
 
@@ -86,7 +88,7 @@ export default function Piano({ pressedKeys }: { pressedKeys?: number[] }) {
             <Note
               label={label}
               kind={black ? "black" : "white"}
-              pressed={pressedKeys && pressedKeys.includes(i + 1)}
+              pressed={pressedKeys && pressedKeys.includes(i)}
             />
           );
         })}

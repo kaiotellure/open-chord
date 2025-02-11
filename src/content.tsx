@@ -30,7 +30,12 @@ function ChordsContainer() {
     fetchTrackForID(videoId)
       .then(async (track) => {
         const video = (await waitForSelector("video")) as HTMLVideoElement;
-        if (window.DEV) video.volume = 0.02;
+
+        if (window.DEV) {
+          video.volume = 0.1;
+          video.currentTime = track.meta.offset - 1;
+          video.focus();
+        }
 
         video.addEventListener("loadedmetadata", () => {
           scheduleBeatUpdates(video, track);
@@ -51,7 +56,8 @@ function ChordsContainer() {
     );
 
     setCurrentBeat(currentBeat);
-    setTimeout(scheduleBeatUpdates, beatDuration * 100, video, track);
+    // setTimeout(scheduleBeatUpdates, beatDuration * 100, video, track);
+    requestAnimationFrame(scheduleBeatUpdates.bind(null, video, track));
   }
 
   log("called");
@@ -85,39 +91,44 @@ function ChordsContainer() {
       {window.DEV && (
         <>
           <span>
-            Current Beat: {currentBeat} @{(video.currentTime-track.meta.offset).toFixed(2)}s
+            Current Beat: {currentBeat} @
+            {(video.currentTime - track.meta.offset).toFixed(2)}s
           </span>
         </>
       )}
 
       <div className="overflow-x-auto scrollbar-none flex items-center snap-mandatory gap-4">
-        {Array.from({ length: totalBeatCount }, (_, i) => (
-          <div
-            key={i}
-            ref={currentBeat == i ? currentSlotRef : null}
-            className={cn("snap-center", currentBeat != i && "opacity-60")}
-          >
-            {true ? (
-              <div
-                className={cn(
-                  "size-full font-bold text-lg px-8 py-2 rounded-md",
-                  currentBeat == i
-                    ? "bg-rose-500 text-rose-800"
-                    : "bg-white/10 text-white/20"
-                )}
-              >
-                {(i % 4) + 1}
-              </div>
-            ) : (
-              <>
-                <span className="text-sm font-medium">
-                  {i} {currentBeat}
-                </span>
-                <Piano />
-              </>
-            )}
-          </div>
-        ))}
+        {Array.from({ length: totalBeatCount }, (_, i) => {
+          const keypoint = track.keypoints.find((k) => k.beat == i);
+
+          return (
+            <div
+              key={i}
+              ref={currentBeat == i ? currentSlotRef : null}
+              className={cn("snap-center", currentBeat != i && "opacity-60")}
+            >
+              {keypoint ? (
+                <>
+                  <span className="text-sm font-medium">
+                    {keypoint.keys.name}
+                  </span>
+                  <Piano pressedKeys={keypoint.keys.notes} />
+                </>
+              ) : (
+                <div
+                  className={cn(
+                    "size-full font-bold text-lg px-8 py-2 rounded-md",
+                    currentBeat == i
+                      ? "bg-rose-500 text-rose-800"
+                      : "bg-white/10 text-white/20"
+                  )}
+                >
+                  {(i % 4) + 1}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

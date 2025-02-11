@@ -1,4 +1,5 @@
-import { INTERVALS, Key, TrackApiResponse } from "./types";
+import {chord} from "./chords";
+import { TrackApiResponse } from "./types";
 
 export const log = (...messages: any[]) => console.log("[🎹]", ...messages);
 
@@ -19,7 +20,20 @@ export async function fetchTrackForID(id: string): Promise<TrackApiResponse> {
         length: 1,
         offset: 9.5,
       },
-      keypoints: [{ after: 0, keys: [1, 4, 8] }],
+      keypoints: [
+        { beat: 0, keys: chord("Bb", "minor") },
+        { beat: 4, keys: chord("Bb", "minor_seventh") },
+        { beat: 8, keys: chord("Gb", "major_seventh") },
+        { beat: 12, keys: chord("Eb", "dominant_seventh") },
+        { beat: 14, keys: chord("F", "dominant_seventh") },
+        { beat: 16, keys: chord("Bb", "minor_seventh") },
+        { beat: 20, keys: chord("G", "minor_seventh") },
+        { beat: 24, keys: chord("Gb", "major_seventh") },
+        { beat: 28, keys: chord("C", "minor_seventh") },
+        { beat: 30, keys: chord("F", "dominant_seventh") },
+        { beat: 32, keys: chord("Bb", "minor_seventh") },
+        { beat: 36, keys: chord("G", "dim") },
+      ],
     };
 
   const response = await fetch(
