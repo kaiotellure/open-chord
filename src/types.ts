@@ -14,6 +14,7 @@ export type TrackKeypoint = {
 
 type TrackMeta = {
   bpm: number;
+  key: string;
   author: string;
 };
 

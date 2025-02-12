@@ -18,6 +18,8 @@ function ChordsContainer() {
   const [video, setVideo] = useState<HTMLVideoElement>();
   const [track, setTrack] = useState<TrackApiResponse>();
 
+  const [isInvalidated, setIsInvalidated] = useState(false);
+
   const [currentKeypoint, setCurrentKeypoint] = useState<TrackKeypoint>();
   const currentSlotRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +28,7 @@ function ChordsContainer() {
 
   useEffect(() => {
     const videoId = getThisYoutubeVideoID();
-    if (!videoId) return log("could not get video id");
+    if (!videoId) return;
 
     fetchTrackForID(videoId)
       .then(async (track) => {
@@ -43,6 +45,11 @@ function ChordsContainer() {
           setVideo(video);
           setTrack(track);
         });
+
+        document.addEventListener("client_navigation", ()=>{
+          const nextVideoId = getThisYoutubeVideoID();
+          setIsInvalidated(nextVideoId != videoId)
+        })
       })
       .catch(console.error);
   }, []);
@@ -74,7 +81,7 @@ function ChordsContainer() {
     });
   }, [currentSlotRef.current]);
 
-  if (!track || !video) return;
+  if (!track || !video || isInvalidated) return;
 
   return (
     <div
@@ -101,7 +108,7 @@ function ChordsContainer() {
                   <span className="mb-2! text-lg font-medium">
                     {keypoint.ch.nm}
                     {DEV && (
-                      <span className="ml-1 text-[10px] leading-none opacity-60">
+                      <span className="ml-1! text-[10px] leading-none opacity-60">
                         {keypoint.at}
                       </span>
                     )}
@@ -125,9 +132,12 @@ function ChordsContainer() {
         })}
       </div>
 
-      <div className="mt-2! text-[8px] opacity-20 gap-2 w-full flex justify-center">
+      <div className="mt-2! text-[8px] opacity-20 gap-2 w-full flex items-center">
         <span>
           Transcriber: <strong>{track.meta.author}</strong>
+        </span>
+        <span>
+          Track KEY: <strong>{track.meta.key.replace("b", "♭")}</strong>
         </span>
         <span>
           Track BPM: <strong>{track.meta.bpm}</strong>
@@ -137,10 +147,44 @@ function ChordsContainer() {
   );
 }
 
-waitForSelector("#above-the-fold").then((titleContainer) => {
-  const container = document.createElement("div");
-  // insert container empty div before title
-  titleContainer.insertBefore(container, titleContainer.firstChild);
-  // render to container
-  render(<ChordsContainer />, container);
+function isVideoPage() {
+  // allow script to run when in preview.html
+  if (location.protocol == "file:") return true;
+  return location.href.includes("youtube.com/watch");
+}
+
+const injectedPagesId = new Set();
+const clientNavigationEvent = new Event("client_navigation")
+
+function onPageClientNavigation() {
+  document.dispatchEvent(clientNavigationEvent);
+
+  const videoId = getThisYoutubeVideoID();
+  if (!videoId) return;
+  
+  if (isVideoPage() && !injectedPagesId.has(videoId)) {
+    log("injecting in video", videoId);
+    injectedPagesId.add(videoId);
+
+    waitForSelector("#above-the-fold").then((titleContainer) => {
+      const container = document.createElement("div");
+      // insert container empty div before title
+      titleContainer.insertBefore(container, titleContainer.firstChild);
+      // render to container
+      render(<ChordsContainer />, container);
+    });
+  }
+}
+
+// Detect URL changes using a MutationObserver
+const observer = new MutationObserver(() => {
+  onPageClientNavigation();
 });
+
+// Observe changes to the `<title>` element, which updates when the URL changes
+observer.observe(document.querySelector("title") as HTMLTitleElement, {
+  childList: true,
+});
+
+// Run the script initially when the page loads
+onPageClientNavigation();

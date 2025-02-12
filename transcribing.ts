@@ -2,11 +2,12 @@ import fs from "fs";
 import { TrackApiResponse } from "./src/types";
 import { chord } from "./src/chords";
 
-const videoId = "EbSOKsFHwU8";
+export const videoId = "EbSOKsFHwU8";
 
 export const myTranscription: TrackApiResponse = {
   meta: {
     bpm: 111,
+    key: "Bbm",
     author: "@kaiotellure",
   },
   keypoints: [

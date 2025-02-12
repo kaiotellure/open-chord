@@ -1,11 +1,12 @@
-import { myTranscription } from "../transcribing";
+import { myTranscription, videoId } from "../transcribing";
 import { TrackApiResponse } from "./types";
 
 export const DEV = import.meta.env.MODE == "development";
 export const log = (...messages: any[]) => console.log("[🎹]", ...messages);
 
 export function getThisYoutubeVideoID() {
-  if (DEV) return "local";
+  // so it doesn't error on preview.html
+  if (location.protocol == "file:") return "local";
 
   try {
     const url = new URL(window.location.href);
@@ -14,7 +15,9 @@ export function getThisYoutubeVideoID() {
 }
 
 export async function fetchTrackForID(id: string): Promise<TrackApiResponse> {
-  if (DEV) return myTranscription;
+  // use transcription from transcribing.ts when in preview.html
+  // also on youtube when mode is development
+  if (DEV && [videoId, "local"].includes(id)) return myTranscription;
 
   const response = await fetch(
     `https://kaiotellure.github.io/open-chord/${id}.json`
