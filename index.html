@@ -3,10 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- External scripts ----------- -->
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
 
+    <!-- Our scripts ----------- -->
+    <script type="module" src="index.ts"></script>
     <script defer type="module" src="src/content.tsx"></script>
-    <title>Development Mock Page</title>
+
+    <title>Local Youtube</title>
   </head>
   <body class="pb-[200vh] flex justify-center my-12 text-white bg-slate-950">
     <section class="flex flex-col gap-2 w-2/3">
@@ -22,32 +27,7 @@
         <h1 class="text-lg font-bold">
           Artist - Song ft. Other (Official Music Video)
         </h1>
-        <p class="mt-4 px-4 py-2 bg-white/20 rounded-md">
-          Press (c) to copy current video time in seconds.
-        </p>
       </div>
     </section>
   </body>
 </html>
-
-<script type="module">
-  /* const url = new URL(location.href);
-  if (!url.searchParams.get("v")) {
-    url.searchParams.set("v", "local");
-    location.replace(url.href);
-  }; */
-
- /*  const socket = new WebSocket("ws://localhost:24678");
-
-  socket.addEventListener("message", (event) => {
-    console.log(event.data);
-    if (event.data.includes("update")) {
-    }
-  }); */
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key != "c") return;
-    const video = document.querySelector("video");
-    navigator.clipboard.writeText(video.currentTime.toFixed(2));
-  });
-</script>

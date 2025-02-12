@@ -27,5 +27,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
   },
-  "include": ["src", "tests", "transcribing.ts"]
+  "include": ["src", "tests", "transcribing.ts", "index.ts"]
 }

@@ -20,6 +20,9 @@ function ChordsContainer() {
   const [video, setVideo] = useState<HTMLVideoElement>();
   const [track, setTrack] = useState<TrackApiResponse>();
 
+  /**
+   * 
+   */
   const [isInvalidated, setIsInvalidated] = useState(false);
 
   const [currentKeypoint, setCurrentKeypoint] = useState<TrackKeypoint>();
@@ -34,7 +37,7 @@ function ChordsContainer() {
 
     fetchTrackForID(videoId)
       .then(async (track) => {
-        const video = (await waitForSelector("video")) as HTMLVideoElement;
+        const video = await waitForSelector<HTMLVideoElement>("video");
 
         if (DEV) {
           video.volume = 0.1;
@@ -52,7 +55,7 @@ function ChordsContainer() {
           ? onVideoReady()
           : (video.onloadedmetadata = onVideoReady);
 
-        document.addEventListener("client_navigation", () => {
+        document.addEventListener("onClientNavigation", () => {
           const nextVideoId = getThisYoutubeVideoID();
           setIsInvalidated(nextVideoId != videoId);
         });
@@ -164,7 +167,7 @@ function isVideoPage() {
 }
 
 const injectedPagesId = new Set();
-const clientNavigationEvent = new Event("client_navigation");
+const clientNavigationEvent = new Event("onClientNavigation");
 
 function onPageClientNavigation() {
   document.dispatchEvent(clientNavigationEvent);
@@ -177,7 +180,7 @@ function onPageClientNavigation() {
     injectedPagesId.add(videoId);
 
     waitForSelector("#above-the-fold").then((titleContainer) => {
-      const id = "open-chord-container";
+      const id = "youtube-chords-container";
       let container = document.getElementById(id);
 
       // create our container if doesn't exists yet

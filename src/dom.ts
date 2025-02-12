@@ -1,13 +1,13 @@
-export function waitForSelector(selector: string): Promise<Element> {
+export function waitForSelector<T= HTMLDivElement>(selector: string): Promise<T> {
   return new Promise((resolve) => {
     const found = document.querySelector(selector);
-    if (found) return resolve(found);
+    if (found) return resolve(found as T);
 
     const observer = new MutationObserver(() => {
       const found = document.querySelector(selector);
       if (found) {
         observer.disconnect();
-        resolve(found);
+        resolve(found as T);
       }
     });
 
