@@ -9,12 +9,16 @@ const Patterns = {
   dominant_seventh: {suffix:"⁷", offs:[4, 7, 10]},
 } as const;
 
+export function prettyNotation(s: string) {
+  return s.replace("b", "♭");
+}
+
 export function chord(root: Note, pattern: keyof typeof Patterns) {
   const base = Notes[root];
   const chord = Patterns[pattern];
 
   return {
-   nm: `${root.replace("b", "♭")}${chord.suffix}`,
+   nm: `${prettyNotation(root)}${chord.suffix}`,
    ns: [base, ...chord.offs.map((offset) => base + offset)]
   };
 }

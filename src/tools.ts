@@ -4,9 +4,13 @@ import { TrackApiResponse } from "./types";
 export const DEV = import.meta.env.MODE == "development";
 export const log = (...messages: any[]) => console.log("[🎹]", ...messages);
 
+export function isLocalServer() {
+  return location.protocol == "file:" || location.hostname == "localhost"
+}
+
 export function getThisYoutubeVideoID() {
   // so it doesn't error on preview.html
-  if (location.protocol == "file:") return "local";
+  if (isLocalServer()) return "local";
 
   try {
     const url = new URL(window.location.href);

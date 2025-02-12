@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "tsc -b && vite build",
-    "dev": "vite build --mode development --watch",
     "transcribe": "tsx transcribing.ts",
+    "build": "tsc -b && vite build",
+    "dev": "vite dev",
     "test": "vitest"
   },
   "devDependencies": {

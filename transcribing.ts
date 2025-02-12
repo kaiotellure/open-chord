@@ -1,13 +1,13 @@
 import fs from "fs";
 import { TrackApiResponse } from "./src/types";
-import { chord } from "./src/chords";
+import { chord, prettyNotation } from "./src/chords";
 
 export const videoId = "EbSOKsFHwU8";
 
 export const myTranscription: TrackApiResponse = {
   meta: {
     bpm: 111,
-    key: "Bbm",
+    key: prettyNotation("Bbm"),
     author: "@kaiotellure",
   },
   keypoints: [

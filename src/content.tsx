@@ -11,8 +11,10 @@ import {
   fetchTrackForID,
   getThisYoutubeVideoID,
   isElementInViewport,
+  isLocalServer,
   log,
 } from "./tools";
+import { prettyNotation } from "./chords";
 
 function ChordsContainer() {
   const [video, setVideo] = useState<HTMLVideoElement>();
@@ -40,16 +42,20 @@ function ChordsContainer() {
           video.focus();
         }
 
-        video.addEventListener("loadedmetadata", () => {
+        function onVideoReady() {
           scheduleBeatUpdates(video, track);
           setVideo(video);
           setTrack(track);
-        });
+        }
 
-        document.addEventListener("client_navigation", ()=>{
+        video.duration
+          ? onVideoReady()
+          : (video.onloadedmetadata = onVideoReady);
+
+        document.addEventListener("client_navigation", () => {
           const nextVideoId = getThisYoutubeVideoID();
-          setIsInvalidated(nextVideoId != videoId)
-        })
+          setIsInvalidated(nextVideoId != videoId);
+        });
       })
       .catch(console.error);
   }, []);
@@ -137,7 +143,7 @@ function ChordsContainer() {
           Transcriber: <strong>{track.meta.author}</strong>
         </span>
         <span>
-          Track KEY: <strong>{track.meta.key.replace("b", "♭")}</strong>
+          Track KEY: <strong>{prettyNotation(track.meta.key || "NOT SPECIFIED")}</strong>
         </span>
         <span>
           Track BPM: <strong>{track.meta.bpm}</strong>
@@ -149,28 +155,36 @@ function ChordsContainer() {
 
 function isVideoPage() {
   // allow script to run when in preview.html
-  if (location.protocol == "file:") return true;
+  if (isLocalServer()) return true;
   return location.href.includes("youtube.com/watch");
 }
 
 const injectedPagesId = new Set();
-const clientNavigationEvent = new Event("client_navigation")
+const clientNavigationEvent = new Event("client_navigation");
 
 function onPageClientNavigation() {
   document.dispatchEvent(clientNavigationEvent);
 
   const videoId = getThisYoutubeVideoID();
   if (!videoId) return;
-  
+
   if (isVideoPage() && !injectedPagesId.has(videoId)) {
     log("injecting in video", videoId);
     injectedPagesId.add(videoId);
 
     waitForSelector("#above-the-fold").then((titleContainer) => {
-      const container = document.createElement("div");
-      // insert container empty div before title
-      titleContainer.insertBefore(container, titleContainer.firstChild);
-      // render to container
+      const id = "open-chord-container";
+      let container = document.getElementById(id);
+
+      // create our container if doesn't exists yet
+      // added to avoid duplicated containers in dev page with hmr
+      if (!container) {
+        container = document.createElement("div");
+        container.id = id;
+        // insert before the youtube's title
+        titleContainer.insertBefore(container, titleContainer.firstChild);
+      }
+
       render(<ChordsContainer />, container);
     });
   }
