@@ -106,8 +106,9 @@ function ChordsContainer() {
             <div
               key={i}
               ref={isCurrent ? currentSlotRef : null}
+              onClick={() => (video.currentTime = Math.round(keypoint.at))}
               className={cn(
-                "snap-center",
+                "snap-center cursor-pointer",
                 !isCurrent && "duration-700 opacity-60"
               )}
             >

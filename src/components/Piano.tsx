@@ -1,3 +1,4 @@
+import { cn } from "../tools";
 
 
 const white_tile = "linear-gradient(to bottom, white, rgb(255,255,255,.8))";
@@ -29,20 +30,22 @@ function Note({
 }) {
   return (
     <div
+    className={cn(
+      pressed
+          ? "bg-[#ff0033]"
+          : kind == "white"
+          ? "bg-white"
+          : "bg-black"
+    )}
       style={{
         transition: "background 300ms ease-out",
-        background: pressed
-          ? pressed_tile
-          : kind == "white"
-          ? white_tile
-          : kind,
+        
         width: kind == "white" ? 10 : 5,
         height: kind == "white" ? 30 : 20,
         marginInline: kind == "white" ? null : -3,
         zIndex: kind == "white" ? null : 10,
         borderBottomRightRadius: kind == "white" ? 1 : 2,
         borderBottomLeftRadius: kind == "white" ? 1 : 2,
-        border: kind == "white" && !pressed ? "solid 1px white" : null,
         display: "flex",
         justifyContent: "center",
         alignItems: "end",
@@ -92,18 +95,6 @@ export default function Piano({ pressedKeys }: { pressedKeys?: number[] }) {
             />
           );
         })}
-      {/* <Note kind="white" label="C" pressed={pressedKeys.includes(1)} />
-      <Note kind="black" pressed={pressedKeys.includes(2)} />
-      <Note kind="white" label="D" pressed={pressedKeys.includes(3)} />
-      <Note kind="black" pressed={pressedKeys.includes(4)} />
-      <Note kind="white" label="E" pressed={pressedKeys.includes(5)} />
-      <Note kind="white" label="F" pressed={pressedKeys.includes(6)} />
-      <Note kind="black" pressed={pressedKeys.includes(7)} />
-      <Note kind="white" label="G" pressed={pressedKeys.includes(8)} />
-      <Note kind="black" pressed={pressedKeys.includes(9)} />
-      <Note kind="white" label="A" pressed={pressedKeys.includes(10)} />
-      <Note kind="black" pressed={pressedKeys.includes(11)} />
-      <Note kind="white" label="B" pressed={pressedKeys.includes(12)} /> */}
     </div>
   );
 }
