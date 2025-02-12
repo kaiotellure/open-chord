@@ -92,7 +92,7 @@ function ChordsContainer() {
     });
   }, [currentSlotRef.current]);
 
-  if (!track || !video || isInvalidated) return;
+  if (!track || !video || isInvalidated) return <span>hiiiiii</span>;
 
   return (
     <div
