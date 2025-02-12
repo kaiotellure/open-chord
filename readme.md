@@ -1,7 +1,7 @@
 
-![yt-video-page](.github/presentation-banner.png)
+![second half of a piano with red background](./public/icons/48x.png)
 
-###### Get Extension
+###### Install Youtube Chords Browser Extension
 
 [![Google Chrome](https://img.shields.io/badge/For%20Chromium%20Browsers-4285F4?style=for-the-badge&logo=GoogleChrome&logoColor=white)](https://chromewebstore.google.com/)
 [![Firefox](https://img.shields.io/badge/For%20Firefox-FF7139?style=for-the-badge&logo=Firefox-Browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/)
