@@ -1,5 +1,4 @@
 import { myTranscription } from "../transcribing";
-import { chord } from "./chords";
 import { TrackApiResponse } from "./types";
 
 export const DEV = import.meta.env.MODE == "development";

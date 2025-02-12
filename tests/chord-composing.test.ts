@@ -10,9 +10,9 @@ test("ensure noteDistance presumption and compose behaviour", () => {
 });
 
 test("ensure chords patterns are correct", () => {
-  expect(chord("Bb", "minor").notes).toStrictEqual([10, 13, 17]);
-  expect(chord("Bb", "minor_seventh").notes).toStrictEqual([10, 13, 17, 20]);
-  expect(chord("Gb", "major_seventh").notes).toStrictEqual([6, 10, 13, 17]);
-  expect(chord("Eb", "dominant_seventh").notes).toStrictEqual([3, 7, 10, 13]);
-  expect(chord("G", "dim").notes).toStrictEqual([7, 10, 13]);
+  expect(chord("Bb", "minor").ns).toStrictEqual([10, 13, 17]);
+  expect(chord("Bb", "minor_seventh").ns).toStrictEqual([10, 13, 17, 20]);
+  expect(chord("Gb", "major_seventh").ns).toStrictEqual([6, 10, 13, 17]);
+  expect(chord("Eb", "dominant_seventh").ns).toStrictEqual([3, 7, 10, 13]);
+  expect(chord("G", "dim").ns).toStrictEqual([7, 10, 13]);
 });
