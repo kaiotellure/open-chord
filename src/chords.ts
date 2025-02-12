@@ -14,8 +14,8 @@ export function chord(root: Note, pattern: keyof typeof Patterns) {
   const chord = Patterns[pattern];
 
   return {
-   name: `${root.replace("b", "♭")}${chord.suffix}`,
-   notes: [base, ...chord.offs.map((offset) => base + offset)]
+   nm: `${root.replace("b", "♭")}${chord.suffix}`,
+   ns: [base, ...chord.offs.map((offset) => base + offset)]
   };
 }
 

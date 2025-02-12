@@ -7,6 +7,7 @@ import { TrackApiResponse, TrackKeypoint } from "./types";
 import Piano from "./components/Piano";
 import {
   cn,
+  DEV,
   fetchTrackForID,
   getThisYoutubeVideoID,
   isElementInViewport,
@@ -31,9 +32,9 @@ function ChordsContainer() {
       .then(async (track) => {
         const video = (await waitForSelector("video")) as HTMLVideoElement;
 
-        if (window.DEV) {
+        if (DEV) {
           video.volume = 0.5;
-          video.currentTime = track.meta.offset - 1;
+          video.currentTime = 8;
           video.focus();
         }
 
@@ -50,14 +51,14 @@ function ChordsContainer() {
     video: HTMLVideoElement,
     track: TrackApiResponse
   ) {
-    const passedKeypoints = track.keypoints.filter(k => video.currentTime > k.beat)
+    const passedKeypoints = track.keypoints.filter(
+      (k) => video.currentTime > k.at
+    );
     const currentKeypoint = passedKeypoints[passedKeypoints.length - 1];
     setCurrentKeypoint(currentKeypoint);
-    // setTimeout(scheduleBeatUpdates, beatDuration * 100, video, track);
+    // run again next frame
     requestAnimationFrame(scheduleBeatUpdates.bind(null, video, track));
   }
-
-  log("called");
 
   useEffect(() => {
     if (!currentSlotRef.current || !containerRef.current) return;
@@ -75,25 +76,13 @@ function ChordsContainer() {
 
   if (!track || !video) return;
 
-  const beatDuration = 60 / track.meta.bpm;
-  const totalBeatCount = Math.ceil(video.duration / beatDuration);
-
   return (
     <div
       ref={containerRef}
       onMouseEnter={() => setIsHoveringContainer(true)}
       onMouseLeave={() => setIsHoveringContainer(false)}
-      className="p-4 mb-4! bg-red-200/10 rounded"
+      className="px-4 py-2 mb-4!"
     >
-      {/* {window.DEV && (
-        <>
-          <span>
-            Current Beat: {0} @
-            {(video.currentTime).toFixed(2)}s
-          </span>
-        </>
-      )} */}
-
       <div className="overflow-x-auto scrollbar-none flex items-center snap-mandatory gap-4">
         {track.keypoints.map((keypoint, i) => {
           const isCurrent = currentKeypoint == keypoint;
@@ -102,14 +91,22 @@ function ChordsContainer() {
             <div
               key={i}
               ref={isCurrent ? currentSlotRef : null}
-              className={cn("snap-center", !isCurrent && "duration-700 opacity-60")}
+              className={cn(
+                "snap-center",
+                !isCurrent && "duration-700 opacity-60"
+              )}
             >
               {keypoint ? (
                 <>
-                  <span className="text-sm font-medium">
-                    {keypoint.keys.name} <span className="text-xs leading-none opacity-60">{keypoint.beat}</span>
+                  <span className="mb-2! text-lg font-medium">
+                    {keypoint.ch.nm}
+                    {DEV && (
+                      <span className="ml-1 text-[10px] leading-none opacity-60">
+                        {keypoint.at}
+                      </span>
+                    )}
                   </span>
-                  <Piano pressedKeys={keypoint.keys.notes} />
+                  <Piano pressedKeys={keypoint.ch.ns} />
                 </>
               ) : (
                 <div
@@ -127,12 +124,18 @@ function ChordsContainer() {
           );
         })}
       </div>
+
+      <div className="mt-2! text-[8px] opacity-20 gap-2 w-full flex justify-center">
+        <span>
+          Transcriber: <strong>{track.meta.author}</strong>
+        </span>
+        <span>
+          Track BPM: <strong>{track.meta.bpm}</strong>
+        </span>
+      </div>
     </div>
   );
 }
-
-// div.ytp-progress-bar-container: progress bar container
-// #above-the-fold: title container
 
 waitForSelector("#above-the-fold").then((titleContainer) => {
   const container = document.createElement("div");

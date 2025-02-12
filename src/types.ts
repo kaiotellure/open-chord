@@ -1,14 +1,20 @@
 import { Notes } from "./tables";
 
 export type TrackKeypoint = {
-  keys: { name: string; notes: number[] };
-  beat: number;
+  /** chord definition */
+  ch: {
+    /** the display name of the chord */
+    nm: string;
+    /** the notes indexes, can go beyond 0-11 for more octaves */
+    ns: number[];
+  };
+  /** in seconds define where this chords hits */
+  at: number; 
 };
 
 type TrackMeta = {
   bpm: number;
-  offset: number;
-  length: number;
+  author: string;
 };
 
 export type TrackApiResponse = {

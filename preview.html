@@ -29,7 +29,11 @@
 </html>
 
 <script type="module">
-  window.DEV = true;
+  const url = new URL(location.href);
+  if (!url.searchParams.get("v")) {
+    url.searchParams.set("v", "local");
+    location.replace(url.href);
+  };
 
   document.addEventListener("keydown", (event) => {
     if (event.key != "c") return;
