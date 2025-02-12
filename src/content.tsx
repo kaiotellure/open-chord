@@ -37,7 +37,7 @@ function ChordsContainer() {
         const video = (await waitForSelector("video")) as HTMLVideoElement;
 
         if (DEV) {
-          video.volume = 0.5;
+          video.volume = 0.1;
           video.currentTime = 8;
           video.focus();
         }
@@ -70,7 +70,9 @@ function ChordsContainer() {
     const currentKeypoint = passedKeypoints[passedKeypoints.length - 1];
     setCurrentKeypoint(currentKeypoint);
     // run again next frame
-    requestAnimationFrame(scheduleBeatUpdates.bind(null, video, track));
+    requestAnimationFrame(() => {
+      scheduleBeatUpdates(video, track);
+    });
   }
 
   useEffect(() => {
@@ -143,7 +145,8 @@ function ChordsContainer() {
           Transcriber: <strong>{track.meta.author}</strong>
         </span>
         <span>
-          Track KEY: <strong>{prettyNotation(track.meta.key || "NOT SPECIFIED")}</strong>
+          Track KEY:{" "}
+          <strong>{prettyNotation(track.meta.key || "NOT SPECIFIED")}</strong>
         </span>
         <span>
           Track BPM: <strong>{track.meta.bpm}</strong>
