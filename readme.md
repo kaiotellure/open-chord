@@ -14,3 +14,6 @@
 
 - **Extension**: The extension's content injected UI interface uses Preact for a lightweight reactive design, styling is done with TailwindCSS, all being bundled using Vite to an IIFE `content.js` file.
 - **Storage**: Initially transcriptions files are being stored using Github's Pages serving pre-generated JSON files. As it grows and starts requiring a more robust infrastructure we do plan to add a CDN strategy or a database solution.
+
+##### Nuances About Youtube
+- **Styles not applying**: When using the following CSS properties: Background Colors, Padding, Margin and Border, make sure to make them `!important`, as Youtube has preflight styles that overwrites the Tailwind utilities.

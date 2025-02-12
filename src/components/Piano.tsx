@@ -1,9 +1,5 @@
 import { cn } from "../tools";
 
-
-const white_tile = "linear-gradient(to bottom, white, rgb(255,255,255,.8))";
-const pressed_tile = "#f294cc";
-
 const PATTERN = [
   [0, "C"],
   [1],
@@ -32,10 +28,10 @@ function Note({
     <div
     className={cn(
       pressed
-          ? "bg-[#ff0033]"
+          ? "bg-[#ff0033]!"
           : kind == "white"
-          ? "bg-white"
-          : "bg-black"
+          ? "bg-white!"
+          : "bg-black!"
     )}
       style={{
         transition: "background 300ms ease-out",

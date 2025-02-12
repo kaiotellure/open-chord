@@ -24,12 +24,12 @@ export async function fetchTrackForID(id: string): Promise<TrackApiResponse> {
   if (DEV && [videoId, "local"].includes(id)) return myTranscription;
 
   const response = await fetch(
-    `https://kaiotellure.github.io/open-chord/${id}.json`
+    `https://kaiotellure.github.io/youtube-chords/${id}.json`
   );
   return response.json();
 }
 
-const STORAGE_PREFIX = "open-chord-";
+const STORAGE_PREFIX = "youtube-chords-";
 
 export async function getTrackForVideo(id: string): Promise<TrackApiResponse> {
   // only load from cache when in "production"
