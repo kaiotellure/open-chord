@@ -1,94 +1,233 @@
 import fs from "fs";
-import { TrackApiResponse } from "./src/types";
+import { TrackApiResponse, TrackKeypoint } from "./src/types";
 import { chord, prettyNotation } from "./src/chords";
 
-export const videoId = "EbSOKsFHwU8";
+export const videoId = "SMDJ6_ftXV8";
+
+function repeat(at: number, ...chords: TrackKeypoint[]) {
+  return chords.map((chord, i) => {
+    return {
+      at: at + (i == 0 ? 0 : chord.at - chords[0].at),
+      ch: chord.ch,
+    };
+  });
+}
 
 export const myTranscription: TrackApiResponse = {
   meta: {
-    bpm: 111,
-    key: prettyNotation("Bbm"),
+    bpm: 97,
+    key: prettyNotation("E"),
     author: "@kaiotellure",
   },
   keypoints: [
-    { at: 9.77, ch: chord("Bb", "minor") },
-    { at: 11.65, ch: chord("Bb", "minor_seventh") },
-    { at: 14.15, ch: chord("Gb", "major_seventh") },
-    { at: 16.14, ch: chord("Eb", "dominant_seventh") },
-    { at: 17.1, ch: chord("F", "dominant_seventh") },
-    { at: 18.52, ch: chord("Bb", "minor_seventh") },
-    { at: 20.44, ch: chord("G", "minor_seventh") },
-    { at: 22.99, ch: chord("Gb", "major_seventh") },
-    { at: 24.88, ch: chord("C", "minor_seventh") },
-    { at: 25.97, ch: chord("F", "dominant_seventh") },
-    { at: 27.3, ch: chord("Bb", "minor_seventh") },
-    { at: 29.24, ch: chord("G", "dim") },
-    { at: 31.75, ch: chord("Gb", "major_seventh") },
-    { at: 33.69, ch: chord("C", "minor_seventh") },
-    { at: 34.82, ch: chord("F", "dominant_seventh") },
-    { at: 36.14, ch: chord("Bb", "minor_seventh") },
-    { at: 38.03, ch: chord("G", "minor_seventh") },
-    { at: 40.61, ch: chord("Gb", "major_seventh") },
-    { at: 42.42, ch: chord("C", "minor_seventh") },
-    { at: 43.57, ch: chord("F", "dominant_seventh") },
-    { at: 44.95, ch: chord("Bb", "minor_seventh") },
-    { at: 46.85, ch: chord("Eb", "dominant_seventh") },
-    { at: 49.32, ch: chord("Gb", "major_seventh") },
-    { at: 51.51, ch: chord("C", "minor_seventh") },
-    { at: 52.27, ch: chord("F", "dominant_seventh") },
-    { at: 53.7, ch: chord("Bb", "minor_seventh") },
-    { at: 55.62, ch: chord("G", "minor_seventh") },
-    { at: 57.74, ch: chord("Gb", "major_seventh") },
-    { at: 60.0, ch: chord("C", "minor_seventh") },
-    { at: 61.17, ch: chord("F", "dominant_seventh") },
-    { at: 62.46, ch: chord("Bb", "minor_seventh") },
-    { at: 64.39, ch: chord("G", "minor_seventh") },
-    { at: 66.92, ch: chord("Gb", "major_seventh") },
-    { at: 68.8, ch: chord("C", "minor_seventh") },
-    { at: 69.97, ch: chord("F", "dominant_seventh") },
-    { at: 71.27, ch: chord("Bb", "minor_seventh") },
-    { at: 73.51, ch: chord("G", "dominant_seventh") },
-    { at: 75.71, ch: chord("Gb", "major_seventh") },
-    { at: 77.85, ch: chord("C", "minor_seventh") },
-    { at: 79.0, ch: chord("F", "dominant_seventh") },
-    { at: 80.08, ch: chord("Bb", "minor_seventh") },
-    { at: 82.24, ch: chord("G", "minor_seventh") },
-    { at: 84.48, ch: chord("Gb", "major_seventh") },
-    { at: 86.67, ch: chord("C", "minor_seventh") },
-    { at: 87.77, ch: chord("F", "dominant_seventh") },
+    { at: 0.34, ch: chord("C#", "minor") },
+    { at: 1.52, ch: chord("F#", "minor") },
+    { at: 2.76, ch: chord("B", "minor") },
+    { at: 4.04, ch: chord("E", "major") },
+    ...repeat(
+      5.34,
+      { at: 0.34, ch: chord("C#", "minor_seventh") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
+    ...repeat(
+      10.27,
+      { at: 0.34, ch: chord("C#", "minor") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
+    ...repeat(
+      15.36,
+      { at: 0.34, ch: chord("C#", "minor_seventh") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
+    { at: 20.32, ch: chord("D", "major_seventh") },
+    { at: 22.83, ch: chord("C#", "minor_seventh") },
+    { at: 24.65, ch: chord("F#", "minor") },
+    { at: 25.34, ch: chord("B", "minor_seventh") },
+    { at: 27.81, ch: chord("E", "major") },
+    { at: 29.06, ch: chord("A", "major_seventh") },
+    ...repeat(
+      30.36,
+      { at: 20.32, ch: chord("D", "major_seventh") },
+      { at: 22.83, ch: chord("C#", "minor_seventh") },
+      { at: 24.65, ch: chord("F#", "minor") },
+      { at: 25.34, ch: chord("B", "minor_seventh") },
+      { at: 27.81, ch: chord("E", "major") }
+    ),
+    { at: 39.06, ch: chord("A", "major") },
+    { at: 40.36, ch: chord("D", "major_seventh") },
+    { at: 42.75, ch: chord("C#", "minor_seventh") },
+    { at: 45.35, ch: chord("B", "minor_seventh") },
+    { at: 47.89, ch: chord("E", "major") },
+    { at: 49.01, ch: chord("A", "major") },
+    ...repeat(
+      50.35,
+      { at: 20.32, ch: chord("D", "major_seventh") },
+      { at: 22.83, ch: chord("C#", "minor_seventh") },
+      { at: 24.65, ch: chord("F#", "minor") },
+      { at: 25.34, ch: chord("B", "minor_seventh") },
+      { at: 27.81, ch: chord("E", "major") }
+    ),
+    { at: 59.06, ch: chord("A", "major") },
+    ...repeat(
+      60.33,
+      { at: 0.34, ch: chord("C#", "minor") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
+    ...repeat(
+      65.32,
+      { at: 0.34, ch: chord("C#", "minor_seventh") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
 
-    { at: 88.88, ch: chord("Bb", "minor_seventh") },
-    { at: 91.09, ch: chord("G", "minor_seventh") },
-    { at: 93.28, ch: chord("Gb", "major_seventh") },
-    { at: 95.5, ch: chord("C", "minor_seventh") },
-    { at: 96.6, ch: chord("F", "dominant_seventh") },
+    ...repeat(
+      70.32,
+      { at: 0.34, ch: chord("C#", "minor") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
 
-    { at: 97.64, ch: chord("Bb", "minor_seventh") },
-    { at: 99.89, ch: chord("G", "minor_seventh") },
-    { at: 102.07, ch: chord("Gb", "major_seventh") },
-    { at: 104.23, ch: chord("C", "minor_seventh") },
-    { at: 105.08, ch: chord("F", "dominant_seventh") },
+    ...repeat(
+      75.4,
+      { at: 0.34, ch: chord("C#", "minor_seventh") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
 
-    { at: 106.44, ch: chord("Bb", "minor_seventh") },
-    { at: 108.34, ch: chord("G", "minor_seventh") },
-    { at: 110.56, ch: chord("Gb", "major_seventh") },
-    { at: 112.79, ch: chord("C", "minor_seventh") },
-    { at: 113.84, ch: chord("F", "dominant_seventh") },
+    ...repeat(
+      80.33,
+      { at: 0.34, ch: chord("C#", "minor") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
 
-    { at: 115.25, ch: chord("Bb", "minor_seventh") },
-    { at: 117.11, ch: chord("G", "minor_seventh") },
-    { at: 119.62, ch: chord("Gb", "major_seventh") },
-    { at: 121.53, ch: chord("C", "minor_seventh") },
-    { at: 122.69, ch: chord("F", "dominant_seventh") },
+    ...repeat(
+      85.32,
+      { at: 0.34, ch: chord("C#", "minor_seventh") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
 
-    { at: 123.98, ch: chord("Bb", "minor_seventh") },
-    { at: 125.94, ch: chord("G", "minor_seventh") },
-    { at: 128.45, ch: chord("Gb", "major_seventh") },
-    { at: 130.59, ch: chord("C", "minor_seventh") },
+    ...repeat(
+      90.4,
+      { at: 0.34, ch: chord("C#", "minor") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
 
-    { at: 131.73, ch: chord("F", "dominant_seventh") },
+    ...repeat(
+      95.38,
+      { at: 0.34, ch: chord("C#", "minor_seventh") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
 
-    { at: 133.56, ch: chord("Bb", "minor_seventh") },
+    ...repeat(
+      100.42,
+      { at: 0.34, ch: chord("C#", "minor") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
+    ...repeat(
+      105.35,
+      { at: 0.34, ch: chord("C#", "minor") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
+    ...repeat(
+      110.33,
+      { at: 0.34, ch: chord("C#", "minor") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
+    
+    ...repeat(
+      115.34,
+      { at: 0.34, ch: chord("C#", "minor_seventh") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
+    
+    ...repeat(
+      120.35,
+      { at: 20.32, ch: chord("D", "major_seventh") },
+      { at: 22.83, ch: chord("C#", "minor_seventh") },
+      { at: 24.65, ch: chord("F#", "minor") },
+      { at: 25.34, ch: chord("B", "minor_seventh") },
+      { at: 27.81, ch: chord("E", "major") }
+    ),
+    { at: 129.10, ch: chord("A", "major") },
+    
+    
+    ...repeat(
+      130.56,
+      { at: 20.32, ch: chord("D", "major_seventh") },
+      { at: 22.83, ch: chord("C#", "minor_seventh") },
+      { at: 24.65, ch: chord("F#", "minor") },
+      { at: 25.34, ch: chord("B", "minor_seventh") },
+      { at: 27.81, ch: chord("E", "major") }
+    ),
+    { at: 139.10, ch: chord("A", "major") },
+    ...repeat(
+      140.34,
+      { at: 20.32, ch: chord("D", "major_seventh") },
+      { at: 22.83, ch: chord("C#", "minor_seventh") },
+      { at: 25.34, ch: chord("B", "minor_seventh") },
+      { at: 27.81, ch: chord("E", "major") }
+    ),
+    { at: 149.07, ch: chord("A", "major_seventh") },
+    ...repeat(
+      150.36,
+      { at: 20.32, ch: chord("D", "major_seventh") },
+      { at: 22.83, ch: chord("C#", "minor_seventh") },
+      { at: 24.65, ch: chord("F#", "minor_seventh") },
+      { at: 25.34, ch: chord("B", "minor_seventh") },
+      { at: 27.81, ch: chord("E", "major") }
+    ),
+    { at: 159.15, ch: chord("A", "major") },
+    
+    ...repeat(
+      160.42,
+      { at: 0.34, ch: chord("C#", "minor") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
+    
+    ...repeat(
+      165.39,
+      { at: 0.34, ch: chord("C#", "minor_seventh") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
+    
+    ...repeat(
+      170.39,
+      { at: 0.34, ch: chord("C#", "minor") },
+      { at: 1.52, ch: chord("F#", "minor") },
+      { at: 2.76, ch: chord("B", "minor_seventh") },
+      { at: 4.04, ch: chord("E", "major") }
+    ),
   ],
 };
 

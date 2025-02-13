@@ -1,7 +1,8 @@
 import { myTranscription, videoId } from "../transcribing";
 import { TrackApiResponse } from "./types";
 
-export const DEV = import.meta.env.MODE == "development";
+const STORAGE_PREFIX = "youtube-chords-";
+
 export const log = (
   level: "debug" | "info" | "warn" | "error",
   ...messages: any[]
@@ -24,7 +25,8 @@ export function getThisYoutubeVideoID() {
 export async function fetchTrackForID(id: string): Promise<TrackApiResponse> {
   // use transcription from transcribing.ts when in preview.html
   // also on youtube when mode is development
-  if (DEV && [videoId, "local"].includes(id)) return myTranscription;
+  if (!import.meta.env.PROD && [videoId, "local"].includes(id))
+    return myTranscription;
 
   const response = await fetch(
     `https://kaiotellure.github.io/youtube-chords/${id}.json`
@@ -33,11 +35,11 @@ export async function fetchTrackForID(id: string): Promise<TrackApiResponse> {
   return response.json();
 }
 
-const STORAGE_PREFIX = "youtube-chords-";
+
 
 export async function getTrackForVideo(id: string): Promise<TrackApiResponse> {
   // only load from cache when in "production"
-  if (!DEV) {
+  if (import.meta.env.PROD) {
     try {
       const cached = localStorage.getItem(STORAGE_PREFIX + id);
       if (cached) return JSON.parse(cached);

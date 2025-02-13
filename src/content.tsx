@@ -1,13 +1,13 @@
 import "./styles.css";
 
 import { render } from "preact";
+
 import { waitForSelector } from "./dom";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { TrackApiResponse, TrackKeypoint } from "./types";
 import Piano from "./components/Piano";
 import {
   cn,
-  DEV,
   fetchTrackForID,
   getThisYoutubeVideoID,
   isElementInViewport,
@@ -15,6 +15,7 @@ import {
   log,
 } from "./tools";
 import { prettyNotation } from "./chords";
+import KeyValueText from "./components/KeyValueText";
 
 function ChordsContainer(props: {
   initialVideoId: string;
@@ -66,11 +67,14 @@ function ChordsContainer(props: {
     let stop: boolean;
 
     function everyFrame() {
+      // get all past keypoints
       const passedKeypoints = track.keypoints.filter(
         (k) => props.video.currentTime > k.at
       );
-      const currentKeypoint = passedKeypoints[passedKeypoints.length - 1];
-      setCurrentKeypoint(currentKeypoint);
+      // the last keypoint is our new current one
+      const nextCurrentKeypoint = passedKeypoints[passedKeypoints.length - 1];
+      // sets, react doesn't re-render if is the same
+      setCurrentKeypoint(nextCurrentKeypoint);
       // run again next frame
       if (!stop) requestAnimationFrame(everyFrame);
     }
@@ -91,7 +95,14 @@ function ChordsContainer(props: {
       block: "nearest",
       inline: "center",
     });
-  }, [currentSlotRef]);
+  }, [currentSlotRef.current]);
+
+  if (!import.meta.env.PROD) {
+    useEffect(() => {
+      props.video.volume = 0.5;
+      props.video.focus();
+    }, [props.video]);
+  }
 
   if (shouldHide) return;
 
@@ -110,7 +121,10 @@ function ChordsContainer(props: {
             <div
               key={i}
               ref={isCurrent ? currentSlotRef : null}
-              onClick={() => (props.video.currentTime = Math.round(keypoint.at))}
+              onClick={() => {
+                props.video.currentTime = keypoint.at - 0.5;
+                props.video.play();
+              }}
               className={cn(
                 "snap-center cursor-pointer",
                 !isCurrent && "duration-700 opacity-60"
@@ -120,7 +134,7 @@ function ChordsContainer(props: {
                 <>
                   <span className="mb-2! text-lg font-medium">
                     {keypoint.ch.nm}
-                    {DEV && (
+                    {!import.meta.env.PROD && (
                       <span className="ml-1! text-[10px] leading-none opacity-60">
                         {keypoint.at}
                       </span>
@@ -145,21 +159,19 @@ function ChordsContainer(props: {
         })}
       </div>
 
+      {/* Song Properties Small Text ------------- */}
       <div className="mt-2! text-[8px] opacity-20 gap-2 w-full flex items-center">
-        <span>
-          Transcriber: <strong>{track.meta.author}</strong>
-        </span>
-        <span>
-          Track KEY:{" "}
-          <strong>{prettyNotation(track.meta.key || "NOT SPECIFIED")}</strong>
-        </span>
-        <span>
-          Track BPM: <strong>{track.meta.bpm}</strong>
-        </span>
+        <KeyValueText label="Transcriber">{track.meta.author}</KeyValueText>
+        <KeyValueText label="Track KEY">
+          {prettyNotation(track.meta.key || "NOT SPECIFIED")}
+        </KeyValueText>
+        <KeyValueText label="Track BPM">{track.meta.bpm}</KeyValueText>
       </div>
     </div>
   );
 }
+
+
 
 function isVideoPage() {
   // allow script to run when in preview.html

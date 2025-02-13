@@ -3,6 +3,7 @@ import { Note } from "./types";
 
 const Patterns = {
   minor: {suffix: "m", offs: [3, 7]},
+  major: {suffix: "", offs: [4, 7]},
   dim: {suffix:"ᵈⁱᵐ", offs:[3, 6]},
   minor_seventh: {suffix:"m⁷", offs:[3, 7, 10]},
   major_seventh: {suffix:"ᵐᵃʲ⁷", offs:[4, 7, 11]},
