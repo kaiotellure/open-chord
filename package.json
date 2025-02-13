@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build:dev": "tsc -b && vite build --mode development",
+    "build:dev": "vite build --mode development",
     "transcribe": "tsx transcribing.ts",
     "build": "tsc -b && vite build",
     "dev": "vite dev",

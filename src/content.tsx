@@ -16,73 +16,74 @@ import {
 } from "./tools";
 import { prettyNotation } from "./chords";
 
-function ChordsContainer() {
-  const [video, setVideo] = useState<HTMLVideoElement>();
-  const [track, setTrack] = useState<TrackApiResponse>();
-
-  /**
-   * 
-   */
-  const [isInvalidated, setIsInvalidated] = useState(false);
-
+function ChordsContainer(props: {
+  initialVideoId: string;
+  initialTrack: TrackApiResponse;
+  video: HTMLVideoElement;
+}) {
+  const [videoId, setVideoId] = useState(props.initialVideoId);
+  const [track, setTrack] = useState(props.initialTrack);
+  // when user navigates to another video page or a non-video page
+  // this is used to stop the every frame loop, also to hide chords
+  // box when current video doesn't have transcriptions
+  const [shouldHide, setShouldHide] = useState(false);
+  // the effect running every frame sets here the current chord to display
   const [currentKeypoint, setCurrentKeypoint] = useState<TrackKeypoint>();
+  // a ref pointing to the current highlighted chord
   const currentSlotRef = useRef<HTMLDivElement>(null);
-
+  // used to disable chords scrolling when user is not seeing the chords box
   const containerRef = useRef<HTMLDivElement>(null);
+  // used to disable chords scrolling when user is hovering the chords box
   const [isHoveringContainer, setIsHoveringContainer] = useState(false);
 
+  /**
+   * detect when user navigates to other video page and update video id
+   * to trigger other effects to fetch the track for this new id
+   */
   useEffect(() => {
-    const videoId = getThisYoutubeVideoID();
-    if (!videoId) return;
+    function onNavigation() {
+      const nextVideoId = getThisYoutubeVideoID();
+      if (nextVideoId) setVideoId(nextVideoId);
+    }
 
-    fetchTrackForID(videoId)
-      .then(async (track) => {
-        const video = await waitForSelector<HTMLVideoElement>("video");
-
-        if (DEV) {
-          video.volume = 0.1;
-          video.currentTime = 8;
-          video.focus();
-        }
-
-        function onVideoReady() {
-          scheduleBeatUpdates(video, track);
-          setVideo(video);
-          setTrack(track);
-        }
-
-        video.duration
-          ? onVideoReady()
-          : (video.onloadedmetadata = onVideoReady);
-
-        document.addEventListener("onClientNavigation", () => {
-          const nextVideoId = getThisYoutubeVideoID();
-          setIsInvalidated(nextVideoId != videoId);
-        });
-      })
-      .catch(console.error);
+    const eventName = "onClientNavigation";
+    document.addEventListener(eventName, onNavigation);
+    return () => document.removeEventListener(eventName, onNavigation);
   }, []);
 
-  function scheduleBeatUpdates(
-    video: HTMLVideoElement,
-    track: TrackApiResponse
-  ) {
-    const passedKeypoints = track.keypoints.filter(
-      (k) => video.currentTime > k.at
-    );
-    const currentKeypoint = passedKeypoints[passedKeypoints.length - 1];
-    setCurrentKeypoint(currentKeypoint);
-    // run again next frame
-    requestAnimationFrame(() => {
-      scheduleBeatUpdates(video, track);
-    });
-  }
+  useEffect(() => {
+    fetchTrackForID(videoId)
+      .then((track) => {
+        setTrack(track);
+        setShouldHide(false);
+      })
+      .catch(() => setShouldHide(true));
+  }, [videoId]);
+
+  /** keep a loop running to update the current chord to display */
+  useEffect(() => {
+    if (shouldHide) return;
+    let stop: boolean;
+
+    function everyFrame() {
+      const passedKeypoints = track.keypoints.filter(
+        (k) => props.video.currentTime > k.at
+      );
+      const currentKeypoint = passedKeypoints[passedKeypoints.length - 1];
+      setCurrentKeypoint(currentKeypoint);
+      // run again next frame
+      if (!stop) requestAnimationFrame(everyFrame);
+    }
+
+    everyFrame();
+    return () => (stop = true);
+  }, [track, shouldHide]);
 
   useEffect(() => {
     if (!currentSlotRef.current || !containerRef.current) return;
-    // don't scroll when user is away from video player. eg: comments
+    // don't scroll=interrupt user when not looking to chords box
     if (!isElementInViewport(containerRef.current)) return;
-    // don't scroll when user is hovering container
+    // don't scroll when user is hovering the chords box container
     if (isHoveringContainer) return;
 
     currentSlotRef.current.scrollIntoView({
@@ -90,9 +91,9 @@ function ChordsContainer() {
       block: "nearest",
       inline: "center",
     });
-  }, [currentSlotRef.current]);
+  }, [currentSlotRef]);
 
-  if (!track || !video || isInvalidated) return <span>hiiiiii</span>;
+  if (shouldHide) return;
 
   return (
     <div
@@ -109,7 +110,7 @@ function ChordsContainer() {
             <div
               key={i}
               ref={isCurrent ? currentSlotRef : null}
-              onClick={() => (video.currentTime = Math.round(keypoint.at))}
+              onClick={() => (props.video.currentTime = Math.round(keypoint.at))}
               className={cn(
                 "snap-center cursor-pointer",
                 !isCurrent && "duration-700 opacity-60"
@@ -166,35 +167,47 @@ function isVideoPage() {
   return location.href.includes("youtube.com/watch");
 }
 
-const injectedPagesId = new Set();
-const clientNavigationEvent = new Event("onClientNavigation");
+function inject() {
+  const videoId = getThisYoutubeVideoID();
+  if (!videoId || !isVideoPage()) return;
+
+  log("info", "video id is", videoId);
+
+  waitForSelector("#above-the-fold").then(async (titleContainer) => {
+    document.removeEventListener("onClientNavigation", inject);
+    log("debug", "title container found.");
+
+    const id = "youtube-chords-container";
+    let container = document.getElementById(id);
+
+    // create our container if doesn't exists yet
+    // added to avoid duplicated containers in dev page with hmr
+    if (!container) {
+      container = document.createElement("div");
+      container.id = id;
+      // insert before the youtube's title
+      titleContainer.insertBefore(container, titleContainer.firstChild);
+      log("debug", "new chord container was created.");
+    }
+
+    const video = await waitForSelector<HTMLVideoElement>("video");
+    const track = await fetchTrackForID(videoId);
+
+    render(
+      <ChordsContainer
+        initialTrack={track}
+        initialVideoId={videoId}
+        video={video}
+      />,
+      container
+    );
+  });
+}
+
+document.addEventListener("onClientNavigation", inject);
 
 function onPageClientNavigation() {
-  document.dispatchEvent(clientNavigationEvent);
-
-  const videoId = getThisYoutubeVideoID();
-  if (!videoId) return;
-
-  if (isVideoPage() && !injectedPagesId.has(videoId)) {
-    log("injecting in video", videoId);
-    injectedPagesId.add(videoId);
-
-    waitForSelector("#above-the-fold").then((titleContainer) => {
-      const id = "youtube-chords-container";
-      let container = document.getElementById(id);
-
-      // create our container if doesn't exists yet
-      // added to avoid duplicated containers in dev page with hmr
-      if (!container) {
-        container = document.createElement("div");
-        container.id = id;
-        // insert before the youtube's title
-        titleContainer.insertBefore(container, titleContainer.firstChild);
-      }
-
-      render(<ChordsContainer />, container);
-    });
-  }
+  document.dispatchEvent(new Event("onClientNavigation"));
 }
 
 // Detect URL changes using a MutationObserver

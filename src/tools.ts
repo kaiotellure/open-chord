@@ -2,10 +2,13 @@ import { myTranscription, videoId } from "../transcribing";
 import { TrackApiResponse } from "./types";
 
 export const DEV = import.meta.env.MODE == "development";
-export const log = (...messages: any[]) => console.log("[🎹]", ...messages);
+export const log = (
+  level: "debug" | "info" | "warn" | "error",
+  ...messages: any[]
+) => console[level]("[🎹]", ...messages);
 
 export function isLocalServer() {
-  return location.protocol == "file:" || location.hostname == "localhost"
+  return location.protocol == "file:" || location.hostname == "localhost";
 }
 
 export function getThisYoutubeVideoID() {
@@ -26,6 +29,7 @@ export async function fetchTrackForID(id: string): Promise<TrackApiResponse> {
   const response = await fetch(
     `https://kaiotellure.github.io/youtube-chords/${id}.json`
   );
+
   return response.json();
 }
 
