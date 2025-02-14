@@ -4,9 +4,10 @@
 	"type": "module",
 	"scripts": {
 		"build:dev": "vite build --mode development",
+		"lint": "biome check --write --unsafe",
 		"transcribe": "tsx transcribing.ts",
 		"build": "tsc -b && vite build",
-		"lint": "biome check --write --unsafe src",
+		"prepare": "lefthook install",
 		"dev": "vite dev",
 		"test": "vitest"
 	},
@@ -16,6 +17,7 @@
 		"@tailwindcss/vite": "^4.0.6",
 		"@types/node": "^22.13.1",
 		"@types/youtube": "^0.1.0",
+		"lefthook": "^1.10.10",
 		"preact": "^10.25.4",
 		"tailwind-merge": "^3.0.1",
 		"tailwind-scrollbar": "^4.0.0",
