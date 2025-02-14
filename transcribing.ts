@@ -1,4 +1,4 @@
-import fs from "fs";
+
 import { TrackApiResponse, TrackKeypoint } from "./src/types";
 import { chord, prettyNotation } from "./src/chords";
 
@@ -7,7 +7,7 @@ export const videoId = "SMDJ6_ftXV8";
 function repeat(at: number, ...chords: TrackKeypoint[]) {
   return chords.map((chord, i) => {
     return {
-      at: at + (i == 0 ? 0 : chord.at - chords[0].at),
+      at: Number((at + (i == 0 ? 0 : chord.at - chords[0].at)).toFixed(2)),
       ch: chord.ch,
     };
   });
@@ -232,6 +232,8 @@ export const myTranscription: TrackApiResponse = {
 };
 
 if (typeof window == "undefined") {
+  const fs = await import("fs");
+
   fs.writeFileSync(
     "./docs/" + videoId + ".json",
     JSON.stringify(myTranscription)

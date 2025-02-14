@@ -25,7 +25,7 @@ export function getThisYoutubeVideoID() {
 export async function fetchTrackForID(id: string): Promise<TrackApiResponse> {
   // use transcription from transcribing.ts when in preview.html
   // also on youtube when mode is development
-  if (!import.meta.env.PROD && [videoId, "local"].includes(id))
+  if (import.meta.env.MODE == "development" && [videoId, "local"].includes(id))
     return myTranscription;
 
   const response = await fetch(
@@ -34,8 +34,6 @@ export async function fetchTrackForID(id: string): Promise<TrackApiResponse> {
 
   return response.json();
 }
-
-
 
 export async function getTrackForVideo(id: string): Promise<TrackApiResponse> {
   // only load from cache when in "production"
