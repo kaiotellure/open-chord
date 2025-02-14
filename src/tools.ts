@@ -34,30 +34,6 @@ export async function fetchTrackForID(id: string): Promise<TrackApiResponse> {
   return response.json();
 }
 
-export async function getTrackForVideo(id: string): Promise<TrackApiResponse> {
-  // only load from cache when in "production"
-  if (import.meta.env.MODE != "development") {
-    try {
-      const cached = localStorage.getItem(STORAGE_PREFIX + id);
-      if (cached) return JSON.parse(cached);
-      //
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  try {
-    const track = await fetchTrackForID(id);
-    localStorage.setItem(STORAGE_PREFIX + id, JSON.stringify(track));
-
-    return track;
-    //
-  } catch (err) {
-    //
-    throw err;
-  }
-}
-
 export function isElementInViewport(el: Element) {
   const rect = el.getBoundingClientRect();
   return (
