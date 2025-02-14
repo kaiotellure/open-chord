@@ -1,12 +1,12 @@
-import { PropsWithChildren } from "preact/compat";
+import type { PropsWithChildren } from "preact/compat";
 
 export default function KeyValueText({
-  label,
-  children,
+	label,
+	children,
 }: PropsWithChildren<{ label: string }>) {
-  return (
-    <span>
-      {label}: <strong>{children}</strong>
-    </span>
-  );
+	return (
+		<span>
+			{label}: <strong>{children}</strong>
+		</span>
+	);
 }
