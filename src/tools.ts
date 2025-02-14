@@ -13,7 +13,6 @@ export function isLocalServer() {
 }
 
 export function getThisYoutubeVideoID() {
-  // so it doesn't error on preview.html
   if (isLocalServer()) return "local";
 
   try {
@@ -23,7 +22,7 @@ export function getThisYoutubeVideoID() {
 }
 
 export async function fetchTrackForID(id: string): Promise<TrackApiResponse> {
-  // use transcription from transcribing.ts when in preview.html
+  // use transcription from transcribing.ts in dev site
   // also on youtube when mode is development
   if (import.meta.env.MODE == "development" && [videoId, "local"].includes(id))
     return myTranscription;
@@ -37,7 +36,7 @@ export async function fetchTrackForID(id: string): Promise<TrackApiResponse> {
 
 export async function getTrackForVideo(id: string): Promise<TrackApiResponse> {
   // only load from cache when in "production"
-  if (import.meta.env.PROD) {
+  if (import.meta.env.MODE != "development") {
     try {
       const cached = localStorage.getItem(STORAGE_PREFIX + id);
       if (cached) return JSON.parse(cached);

@@ -231,7 +231,7 @@ export const myTranscription: TrackApiResponse = {
   ],
 };
 
-if (typeof window == "undefined") {
+if (typeof window == "undefined" && !import.meta.env.PROD) {
   const fs = await import("fs");
 
   fs.writeFileSync(
