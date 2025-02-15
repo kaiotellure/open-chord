@@ -1,79 +1,50 @@
+log("info", "content script inserted");
 import "./styles.css";
 
 import { render } from "preact";
-
 import { useEffect, useRef, useState } from "preact/hooks";
-import { prettyNotation } from "./chords";
+
 import KeyValueText from "./components/KeyValueText";
 import Piano from "./components/Piano";
-import { waitForSelector } from "./dom";
+
+import { prettyNotation } from "./chords";
+import { waitForSelector, watchForTitleChanges } from "./dom";
+import type { TrackApiResponse, TrackKeypoint } from "./types";
+
 import {
 	cn,
 	fetchTrackForID,
 	getThisYoutubeVideoID,
 	isElementInViewport,
-	isLocalServer,
 	log,
 } from "./tools";
-import type { TrackApiResponse, TrackKeypoint } from "./types";
 
 function ChordsContainer(props: {
-	initialVideoId: string;
-	initialTrack: TrackApiResponse;
+	videoId: string;
+	track: TrackApiResponse;
 	video: HTMLVideoElement;
 }) {
-	const [videoId, setVideoId] = useState(props.initialVideoId);
-	const [track, setTrack] = useState(props.initialTrack);
-	// when user navigates to another video page or a non-video page
-	// this is used to stop the every frame loop, also to hide chords
-	// box when current video doesn't have transcriptions
-	const [shouldHide, setShouldHide] = useState(false);
+	// a ref pointing to the current highlighted chord
+	const highlightedChordRef = useRef<HTMLDivElement>(null);
+	// used to disable chords scrolling when user is not seeing the chords box
+	const chordsContainerRef = useRef<HTMLDivElement>(null);
 	// the effect running every frame sets here the current chord to display
 	const [currentKeypoint, setCurrentKeypoint] = useState<TrackKeypoint>();
-	// a ref pointing to the current highlighted chord
-	const currentSlotRef = useRef<HTMLDivElement>(null);
-	// used to disable chords scrolling when user is not seeing the chords box
-	const containerRef = useRef<HTMLDivElement>(null);
 	// used to disable chords scrolling when user is hovering the chords box
 	const [isHoveringContainer, setIsHoveringContainer] = useState(false);
 
-	/**
-	 * detect when user navigates to other video page and update video id
-	 * to trigger other effects to fetch the track for this new id
-	 */
-	useEffect(() => {
-		function onNavigation() {
-			const nextVideoId = getThisYoutubeVideoID();
-			if (nextVideoId) setVideoId(nextVideoId);
-		}
-
-		const eventName = "onClientNavigation";
-		document.addEventListener(eventName, onNavigation);
-		return () => document.removeEventListener(eventName, onNavigation);
-	}, []);
-
-	useEffect(() => {
-		fetchTrackForID(videoId)
-			.then((track) => {
-				setTrack(track);
-				setShouldHide(false);
-			})
-			.catch(() => setShouldHide(true));
-	}, [videoId]);
-
 	/** keep a loop running to update the current chord to display */
 	useEffect(() => {
-		if (shouldHide) return;
 		let stop: boolean;
 
 		function everyFrame() {
 			// get all past keypoints
-			const passedKeypoints = track.keypoints.filter(
+			const passedKeypoints = props.track.keypoints.filter(
 				(k) => props.video.currentTime > k.at,
 			);
 			// the last keypoint is our new current one
 			const nextCurrentKeypoint = passedKeypoints[passedKeypoints.length - 1];
-			// sets, react doesn't re-render if is the same
+			// sets, react doesn't re-render if it's the same
 			setCurrentKeypoint(nextCurrentKeypoint);
 			// run again next frame
 			if (!stop) requestAnimationFrame(everyFrame);
@@ -83,21 +54,7 @@ function ChordsContainer(props: {
 		return () => {
 			stop = true;
 		};
-	}, [track, shouldHide, props.video]);
-
-	useEffect(() => {
-		if (!currentSlotRef.current || !containerRef.current) return;
-		// don't scroll=interrupt user when not looking to chords box
-		if (!isElementInViewport(containerRef.current)) return;
-		// don't scroll when user is hovering the chords box container
-		if (isHoveringContainer) return;
-
-		currentSlotRef.current.scrollIntoView({
-			behavior: "smooth",
-			block: "nearest",
-			inline: "center",
-		});
-	}, [isHoveringContainer]);
+	}, [props.track, props.video]);
 
 	if (!import.meta.env.PROD) {
 		useEffect(() => {
@@ -106,31 +63,38 @@ function ChordsContainer(props: {
 		}, [props.video]);
 	}
 
-	if (shouldHide) return;
+	if (
+		highlightedChordRef.current && // there's a current chord piano
+		chordsContainerRef.current && // chords container is defined
+		!isHoveringContainer && // user isn't interacting with chords
+		isElementInViewport(chordsContainerRef.current) // user is seeing the chords
+	) {
+		highlightedChordRef.current.scrollIntoView({
+			behavior: "smooth",
+			block: "nearest",
+			inline: "center",
+		});
+	}
 
 	return (
 		<div
-			ref={containerRef}
+			ref={chordsContainerRef}
+			className="px-4 py-2 mb-4!"
 			onMouseEnter={() => setIsHoveringContainer(true)}
 			onMouseLeave={() => setIsHoveringContainer(false)}
-			className="px-4 py-2 mb-4!"
 		>
 			<div className="overflow-x-auto scrollbar-none flex items-center snap-mandatory gap-4">
-				{track.keypoints.map((keypoint, i) => {
+				{props.track.keypoints.map((keypoint, i) => {
 					const isCurrent = currentKeypoint === keypoint;
 
 					return (
 						<div
-							key={keypoint.at}
-							ref={isCurrent ? currentSlotRef : null}
-							/* onClick={() => {
-								props.video.currentTime = keypoint.at - 0.5;
-								props.video.play();
-							}} */
 							className={cn(
 								"snap-center cursor-pointer",
 								!isCurrent && "duration-700 opacity-60",
 							)}
+							key={keypoint.at}
+							ref={isCurrent ? highlightedChordRef : undefined}
 						>
 							{keypoint ? (
 								<>
@@ -163,74 +127,80 @@ function ChordsContainer(props: {
 
 			{/* Song Properties Small Text ------------- */}
 			<div className="mt-2! text-[8px] opacity-20 gap-2 w-full flex items-center">
-				<KeyValueText label="Transcriber">{track.meta.author}</KeyValueText>
-				<KeyValueText label="Track KEY">
-					{prettyNotation(track.meta.key || "NOT SPECIFIED")}
+				<KeyValueText label="Transcriber">
+					{props.track.meta.author}
 				</KeyValueText>
-				<KeyValueText label="Track BPM">{track.meta.bpm}</KeyValueText>
+				<KeyValueText label="Track KEY">
+					{prettyNotation(props.track.meta.key || "NOT SPECIFIED")}
+				</KeyValueText>
+				<KeyValueText label="Track BPM">{props.track.meta.bpm}</KeyValueText>
 			</div>
 		</div>
 	);
 }
 
-function isVideoPage() {
-	// allow script to run when in preview.html
-	if (isLocalServer()) return true;
-	return location.href.includes("youtube.com/watch");
+function createChordsRoot(id: string, at: Node) {
+	const existingRoot = document.getElementById(id);
+
+	if (existingRoot) {
+		log("info", "previous chords root found, un-rendering...");
+
+		render(null, existingRoot);
+		return existingRoot;
+	}
+
+	const root = document.createElement("div");
+	root.id = id;
+
+	at.insertBefore(root, at.firstChild);
+	return root;
 }
 
-function inject() {
+function inject(videoId: string) {
+	log("info", "waiting for yt title container");
+
+	waitForSelector("#above-the-fold")
+		.then(async (titleContainer) => {
+			//
+			const root = createChordsRoot("youtube-chords-container", titleContainer);
+
+			log("info", "waiting for video element");
+			const video = await waitForSelector<HTMLVideoElement>("video");
+
+			try {
+				log("info", "fetching track...");
+				const track = await fetchTrackForID(videoId);
+
+				render(
+					<ChordsContainer videoId={videoId} video={video} track={track} />,
+					root,
+				);
+			} catch (err) {
+				log("warn", "transcription for this video not found");
+			}
+		})
+		.catch((err) => {
+			log("error", "wait for yt title container was cancelled, err:", err);
+		});
+}
+
+window.addEventListener("onVideoIdChanged", () => {
 	const videoId = getThisYoutubeVideoID();
-	if (!videoId || !isVideoPage()) return;
-
-	log("info", "video id is", videoId);
-
-	waitForSelector("#above-the-fold").then(async (titleContainer) => {
-		document.removeEventListener("onClientNavigation", inject);
-		log("debug", "title container found.");
-
-		const id = "youtube-chords-container";
-		let container = document.getElementById(id);
-
-		// create our container if doesn't exists yet
-		// added to avoid duplicated containers in dev page with hmr
-		if (!container) {
-			container = document.createElement("div");
-			container.id = id;
-			// insert before the youtube's title
-			titleContainer.insertBefore(container, titleContainer.firstChild);
-			log("debug", "new chord container was created.");
-		}
-
-		const video = await waitForSelector<HTMLVideoElement>("video");
-		const track = await fetchTrackForID(videoId);
-
-		render(
-			<ChordsContainer
-				initialTrack={track}
-				initialVideoId={videoId}
-				video={video}
-			/>,
-			container,
-		);
-	});
-}
-
-document.addEventListener("onClientNavigation", inject);
-
-function onPageClientNavigation() {
-	document.dispatchEvent(new Event("onClientNavigation"));
-}
-
-// Detect URL changes using a MutationObserver
-const observer = new MutationObserver(() => {
-	onPageClientNavigation();
+	if (videoId) inject(videoId);
 });
 
-// Observe changes to the `<title>` element, which updates when the URL changes
-observer.observe(document.querySelector("title") as HTMLTitleElement, {
-	childList: true,
+let videoId = getThisYoutubeVideoID();
+
+window.addEventListener("onTitleChanged", () => {
+	const newVideoId = getThisYoutubeVideoID();
+
+	if (newVideoId !== videoId) {
+		log("info", "video id changed from", videoId, "to", newVideoId);
+
+		window.dispatchEvent(new Event("onVideoIdChanged"));
+		videoId = newVideoId;
+	}
 });
 
-// Run the script initially when the page loads
-onPageClientNavigation();
+watchForTitleChanges();
+if (videoId) inject(videoId);

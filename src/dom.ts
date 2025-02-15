@@ -1,3 +1,5 @@
+import { log } from "./tools";
+
 export function waitForSelector<T = HTMLDivElement>(
 	selector: string,
 ): Promise<T> {
@@ -19,4 +21,20 @@ export function waitForSelector<T = HTMLDivElement>(
 			subtree: true,
 		});
 	});
+}
+
+export function watchForTitleChanges() {
+	const title = document.querySelector("title");
+
+	if (!title) {
+		log("error", "somehow the document head title element was not found");
+		return watchForTitleChanges();
+	}
+
+	const observer = new MutationObserver(() => {
+		window.dispatchEvent(new Event("onTitleChanged"));
+	});
+
+	observer.observe(title, { childList: true });
+	log("info", "watching for navigations");
 }

@@ -1,11 +1,9 @@
 import { myTranscription, videoId } from "../transcribing";
 import type { TrackApiResponse } from "./types";
 
-const STORAGE_PREFIX = "youtube-chords-";
-
 export const log = (
 	level: "debug" | "info" | "warn" | "error",
-	...messages: (string | number | object)[]
+	...messages: (string | number | object | undefined | null)[]
 ) => console[level]("[🎹]", ...messages);
 
 export function isLocalServer() {
@@ -24,8 +22,13 @@ export function getThisYoutubeVideoID() {
 export async function fetchTrackForID(id: string): Promise<TrackApiResponse> {
 	// use transcription from transcribing.ts in dev site
 	// also on youtube when mode is development
-	if (import.meta.env.MODE === "development" && [videoId, "local"].includes(id))
+	if (
+		import.meta.env.MODE === "development" &&
+		[videoId, "local"].includes(id)
+	) {
+		log("info", "using local transcription");
 		return myTranscription;
+	}
 
 	const response = await fetch(
 		`https://kaiotellure.github.io/youtube-chords/${id}.json`,

@@ -35,19 +35,12 @@ function Note(props: {
 						: "bg-black!",
 			)}
 		>
-			{props.labels.map((label) => (
-				<span
-					key={label}
-					className={cn(
-						"font-medium",
-						props.kind === "white"
-							? "text-black text-[6px]"
-							: "text-white/60 text-[2px]",
-					)}
-				>
-					{label}
-				</span>
-			))}
+			{props.kind === "white" &&
+				props.labels.map((label) => (
+					<span key={label} className="font-medium text-black text-[6px]">
+						{label}
+					</span>
+				))}
 		</div>
 	);
 }
