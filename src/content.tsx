@@ -84,42 +84,31 @@ function ChordsContainer(props: {
 			onMouseLeave={() => setIsHoveringContainer(false)}
 		>
 			<div className="overflow-x-auto scrollbar-none flex items-center snap-mandatory gap-4">
-				{props.track.keypoints.map((keypoint, i) => {
+				{props.track.keypoints.map((keypoint) => {
 					const isCurrent = currentKeypoint === keypoint;
 
 					return (
 						<div
 							className={cn(
-								"snap-center cursor-pointer",
+								"snap-center pointer-events-none",
 								!isCurrent && "duration-700 opacity-60",
 							)}
 							key={keypoint.at}
 							ref={isCurrent ? highlightedChordRef : undefined}
 						>
-							{keypoint ? (
-								<>
-									<span className="mb-2! text-lg font-medium">
-										{keypoint.ch.nm}
-										{!import.meta.env.PROD && (
-											<span className="ml-1! text-[10px] leading-none opacity-60">
-												{keypoint.at}
-											</span>
-										)}
+							<span className="mb-2! text-lg font-medium">
+								{/* Chord Name ------ */}
+								{keypoint.ch.nm}
+
+								{/* In Dev Show Chord Time ------ */}
+								{!import.meta.env.PROD && (
+									<span className="ml-1! text-[10px] leading-none opacity-60">
+										{keypoint.at}
 									</span>
-									<Piano pressedKeys={keypoint.ch.ns} />
-								</>
-							) : (
-								<div
-									className={cn(
-										"size-full font-bold text-lg px-8 py-2 rounded-md",
-										isCurrent
-											? "bg-rose-500 text-rose-800"
-											: "bg-white/10 text-white/20",
-									)}
-								>
-									{(i % 4) + 1}
-								</div>
-							)}
+								)}
+							</span>
+
+							<Piano pressedKeys={keypoint.ch.ns} />
 						</div>
 					);
 				})}
@@ -130,9 +119,11 @@ function ChordsContainer(props: {
 				<KeyValueText label="Transcriber">
 					{props.track.meta.author}
 				</KeyValueText>
+
 				<KeyValueText label="Track KEY">
 					{prettyNotation(props.track.meta.key || "NOT SPECIFIED")}
 				</KeyValueText>
+
 				<KeyValueText label="Track BPM">{props.track.meta.bpm}</KeyValueText>
 			</div>
 		</div>
